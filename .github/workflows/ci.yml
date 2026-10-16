@@ -36,10 +36,40 @@ jobs:
         name: test-results
         path: target/surefire-reports/
 
-  # ── JOB 2 : Build & Push Docker ────────
-  build:
+  # ── JOB 2 : SonarCloud ─────────────────
+  sonarcloud:
     runs-on: ubuntu-latest
     needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.projectKey=sneybe_devops-app
+          -Dsonar.organization=sneybe
+          -Dsonar.java.binaries=target/classes
+
+
+
+
+  # ── BO3 2 : Build & Push Docker ────────
+  build:
+    runs-on: ubuntu-latest
+    needs: sonarcloud
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
